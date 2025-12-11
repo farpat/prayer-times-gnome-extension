@@ -1,6 +1,6 @@
 /**
- * Indicateur du panel GNOME Shell
- * Affiche la prochaine prière dans la barre supérieure
+ * GNOME Shell panel indicator
+ * Displays the next prayer in the top bar
  */
 
 import GLib from 'gi://GLib';
@@ -13,7 +13,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import type { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import type { PrayerTimes } from '../types/index.js';
-import type { UrgencyStatus } from '../helpers/time.js';
+import type { UrgencyStatus, UrgencyThresholds } from '../helpers/time.js';
 import {
     UPDATE_INTERVAL_SECONDS,
     getTodayString,
@@ -25,9 +25,9 @@ import {
 import { createPrayerMenuItems, createSettingsMenuItem, updateMenuItems } from './menu.js';
 
 /**
- * Indicateur affiché dans le panel GNOME Shell
- * - Affiche la prochaine prière dans la barre supérieure
- * - Menu déroulant avec toutes les prières du jour
+ * Indicator displayed in GNOME Shell panel
+ * - Shows next prayer in top bar
+ * - Dropdown menu with all daily prayers
  */
 export const PrayerTimesIndicator = GObject.registerClass(
     class PrayerTimesIndicator extends PanelMenu.Button {
@@ -58,18 +58,36 @@ export const PrayerTimesIndicator = GObject.registerClass(
 
             this._httpSession = new Soup.Session();
 
-            // Écoute les changements de settings pour rafraîchir
-            this._settingsChangedId = this._settings.connect('changed', () => {
-                this._fetchPrayerTimes();
-                this._applyTheme();
-            });
+            // Capture this for GJS callbacks
+            const self = this;
+
+            // Listen for settings changes to refresh
+            this._settingsChangedId = this._settings.connect(
+                'changed',
+                ((_settings: unknown, key: string) => {
+                    console.log(`[PrayerTimes] Settings changed: ${key}`);
+                    // Ignore cache changes to avoid loops
+                    if (key === 'cached-date' || key === 'cached-times') {
+                        return;
+                    }
+                    // Invalidate cache if location settings change
+                    if (key === 'city' || key === 'country' || key === 'calculation-method') {
+                        console.log(`[PrayerTimes] Invalidating cache due to ${key} change`);
+                        self._settings.set_string('cached-date', '');
+                        self._settings.set_string('cached-times', '');
+                    }
+                    self._fetchPrayerTimes();
+                    self._applyTheme();
+                }) as () => void
+            );
+            console.log(`[PrayerTimes] Settings listener connected with ID: ${this._settingsChangedId}`);
 
             this._fetchPrayerTimes();
             this._startUpdateLoop();
         }
 
         /**
-         * Crée le bouton affiché dans le panel
+         * Creates the button displayed in panel
          */
         private _createPanelButton(): void {
             this._box = new St.BoxLayout({
@@ -93,18 +111,19 @@ export const PrayerTimesIndicator = GObject.registerClass(
         }
 
         /**
-         * Crée le menu déroulant
+         * Creates the dropdown menu
          */
         private _createMenu(): void {
+            const extension = this._extension;
             this._prayerMenuItems = createPrayerMenuItems(this.menu, this._extensionPath);
             createSettingsMenuItem(this.menu, () => {
-                this._extension.openPreferences();
+                extension.openPreferences();
             });
             this._applyTheme();
         }
 
         /**
-         * Applique le thème de couleur et le fond sur le menu
+         * Applies color theme and background to menu
          */
         private _applyTheme(): void {
             const newTheme = this._settings.get_string('color-theme') || 'blue';
@@ -128,23 +147,25 @@ export const PrayerTimesIndicator = GObject.registerClass(
         }
 
         /**
-         * Démarre la boucle de mise à jour périodique
+         * Starts periodic update loop
          */
         private _startUpdateLoop(): void {
+            const self = this;
             this._updateTimeout = GLib.timeout_add_seconds(
                 GLib.PRIORITY_DEFAULT,
                 UPDATE_INTERVAL_SECONDS,
                 () => {
-                    this._updateDisplay();
+                    self._updateDisplay();
                     return GLib.SOURCE_CONTINUE;
                 }
             );
         }
 
         /**
-         * Récupère les horaires de prière (cache ou API)
+         * Fetches prayer times (cache or API)
          */
         private _fetchPrayerTimes(): void {
+            const self = this;
             const city = this._settings.get_string('city') || '';
             const country = this._settings.get_string('country') || '';
             const method = this._settings.get_int('calculation-method');
@@ -152,7 +173,7 @@ export const PrayerTimesIndicator = GObject.registerClass(
             const cachedDate = this._settings.get_string('cached-date');
             const cachedTimes = this._settings.get_string('cached-times');
 
-            // Utilise le cache si disponible et valide
+            // Use cache if available and valid
             if (cachedDate === today && cachedTimes) {
                 try {
                     this._prayerTimes = JSON.parse(cachedTimes);
@@ -170,21 +191,25 @@ export const PrayerTimesIndicator = GObject.registerClass(
 
             fetchPrayerTimes(this._httpSession, city, country, method, (times, error) => {
                 if (times) {
-                    this._prayerTimes = times;
-                    this._settings.set_string('cached-times', JSON.stringify(times));
-                    this._settings.set_string('cached-date', today);
-                    this._updateDisplay();
+                    self._prayerTimes = times;
+                    self._settings.set_string('cached-times', JSON.stringify(times));
+                    self._settings.set_string('cached-date', today);
+                    self._updateDisplay();
                 } else {
                     console.error('[PrayerTimes] Fetch error:', error);
-                    this._showError(error || 'Error');
+                    self._showError(error || 'Error');
                 }
             });
         }
 
         /**
-         * Met à jour l'affichage du panel et du menu
+         * Updates panel and menu display
          */
         private _updateDisplay(): void {
+            if (!this._label) {
+                return;
+            }
+
             if (!this._prayerTimes) {
                 this._label.text = 'Loading...';
                 return;
@@ -193,18 +218,24 @@ export const PrayerTimesIndicator = GObject.registerClass(
             const nextPrayer = getNextPrayer(this._prayerTimes);
             const use24h = this._settings.get_boolean('use-24h-format');
 
-            // Met à jour le panel avec la prochaine prière
+            // Update panel with next prayer
             this._label.text = `${nextPrayer.prayer.label} ${formatTime(nextPrayer.time, use24h)}`;
 
-            // Met à jour l'indicateur de statut coloré
-            const newStatus = getUrgencyStatus(nextPrayer.time);
+            // Get configurable thresholds
+            const thresholds: UrgencyThresholds = {
+                orangeMinutes: this._settings.get_int('urgency-orange-minutes'),
+                redMinutes: this._settings.get_int('urgency-red-minutes'),
+            };
+
+            // Update colored status indicator
+            const newStatus = getUrgencyStatus(nextPrayer.time, thresholds);
             if (newStatus !== this._currentStatus) {
                 this._statusDot.remove_style_class_name(`prayer-status-${this._currentStatus}`);
                 this._statusDot.add_style_class_name(`prayer-status-${newStatus}`);
                 this._currentStatus = newStatus;
             }
 
-            // Met à jour le menu avec toutes les prières
+            // Update menu with all prayers
             updateMenuItems(
                 this._prayerMenuItems as Map<string, never>,
                 this._prayerTimes,
@@ -213,14 +244,14 @@ export const PrayerTimesIndicator = GObject.registerClass(
         }
 
         /**
-         * Affiche un message d'erreur dans le panel
+         * Shows error message in panel
          */
         private _showError(message: string): void {
             this._label.text = message;
         }
 
         /**
-         * Nettoie les ressources à la destruction
+         * Cleans up resources on destruction
          */
         destroy(): void {
             if (this._updateTimeout) {

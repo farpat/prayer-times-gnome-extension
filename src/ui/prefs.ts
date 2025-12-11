@@ -1,6 +1,6 @@
 /**
- * Page de préférences de l'extension
- * Permet de configurer la localisation et le format d'affichage
+ * Extension preferences page
+ * Allows configuring location and display format
  */
 
 import Adw from 'gi://Adw';
@@ -14,33 +14,34 @@ import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/
 import { CALCULATION_METHODS, COLOR_THEMES, MENU_BACKGROUNDS, searchCities } from '../helpers/index.js';
 
 /**
- * Classe principale des préférences
- * Crée les pages Location et Display
+ * Main preferences class
+ * Creates Location and Display pages
  */
 export default class PrayerTimesPreferences extends ExtensionPreferences {
     private _httpSession: Soup.Session | null = null;
     private _searchTimeout: number | null = null;
 
     fillPreferencesWindow(window: Adw.PreferencesWindow): void {
+        const self = this;
         this._httpSession = new Soup.Session();
         const settings = this.getSettings();
 
         this._createLocationPage(window, settings);
         this._createDisplayPage(window, settings);
 
-        // Nettoie les ressources à la fermeture
+        // Clean up resources on close
         window.connect('close-request', () => {
-            if (this._searchTimeout) {
-                GLib.source_remove(this._searchTimeout);
-                this._searchTimeout = null;
+            if (self._searchTimeout) {
+                GLib.source_remove(self._searchTimeout);
+                self._searchTimeout = null;
             }
-            this._httpSession = null;
+            self._httpSession = null;
             return false;
         });
     }
 
     /**
-     * Page Location : ville et méthode de calcul
+     * Location page: city and calculation method
      */
     private _createLocationPage(window: Adw.PreferencesWindow, settings: Gio.Settings): void {
         const page = new Adw.PreferencesPage({
@@ -49,7 +50,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         });
         window.add(page);
 
-        // Groupe pour la recherche de ville
+        // City search group
         const locationGroup = new Adw.PreferencesGroup({
             title: 'Location',
             description: 'Search for your city',
@@ -59,7 +60,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         const cityRow = this._createCityAutocompleteRow(settings);
         locationGroup.add(cityRow);
 
-        // Groupe pour la méthode de calcul
+        // Calculation method group
         const methodGroup = new Adw.PreferencesGroup({
             title: 'Calculation Method',
         });
@@ -70,7 +71,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
     }
 
     /**
-     * Page Display : format de l'heure et thème
+     * Display page: time format and theme
      */
     private _createDisplayPage(window: Adw.PreferencesWindow, settings: Gio.Settings): void {
         const page = new Adw.PreferencesPage({
@@ -97,7 +98,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
 
         formatGroup.add(formatRow);
 
-        // Groupe pour l'apparence
+        // Appearance group
         const appearanceGroup = new Adw.PreferencesGroup({
             title: 'Appearance',
         });
@@ -108,10 +109,98 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
 
         const backgroundRow = this._createBackgroundRow(settings);
         appearanceGroup.add(backgroundRow);
+
+        // Urgency thresholds group
+        const urgencyGroup = new Adw.PreferencesGroup({
+            title: 'Urgency Indicator',
+            description: 'Configure when the status dot changes color',
+        });
+        page.add(urgencyGroup);
+
+        const orangeOptions = [15, 20, 30, 45, 60, 90, 120];
+        const redOptions = [5, 10, 15, 20, 30, 45, 60];
+
+        const orangeRow = this._createThresholdRow(
+            settings,
+            'urgency-orange-minutes',
+            'Orange threshold',
+            'Minutes before prayer to show orange',
+            orangeOptions
+        );
+        urgencyGroup.add(orangeRow);
+
+        const redRow = this._createThresholdRow(
+            settings,
+            'urgency-red-minutes',
+            'Red threshold',
+            'Minutes before prayer to show red',
+            redOptions
+        );
+        urgencyGroup.add(redRow);
+
+        // Cross-validation: red must be < orange
+        orangeRow.connect('notify::selected', () => {
+            const orangeValue = orangeOptions[orangeRow.selected];
+            const redValue = settings.get_int('urgency-red-minutes');
+            if (redValue >= orangeValue) {
+                const newRedValue = redOptions.filter((v) => v < orangeValue).pop() || redOptions[0];
+                settings.set_int('urgency-red-minutes', newRedValue);
+                const newIndex = redOptions.indexOf(newRedValue);
+                if (newIndex >= 0) redRow.selected = newIndex;
+            }
+        });
+
+        redRow.connect('notify::selected', () => {
+            const redValue = redOptions[redRow.selected];
+            const orangeValue = settings.get_int('urgency-orange-minutes');
+            if (redValue >= orangeValue) {
+                const newOrangeValue = orangeOptions.filter((v) => v > redValue)[0] || orangeOptions[orangeOptions.length - 1];
+                settings.set_int('urgency-orange-minutes', newOrangeValue);
+                const newIndex = orangeOptions.indexOf(newOrangeValue);
+                if (newIndex >= 0) orangeRow.selected = newIndex;
+            }
+        });
     }
 
     /**
-     * Crée le sélecteur de thème de couleur
+     * Creates a threshold selector in minutes
+     */
+    private _createThresholdRow(
+        settings: Gio.Settings,
+        key: string,
+        title: string,
+        subtitle: string,
+        options: number[]
+    ): Adw.ComboRow {
+        const model = new Gtk.StringList();
+        for (const minutes of options) {
+            model.append(`${minutes} min`);
+        }
+
+        const row = new Adw.ComboRow({
+            title: title,
+            subtitle: subtitle,
+            model: model,
+        });
+
+        const currentValue = settings.get_int(key);
+        const currentIndex = options.indexOf(currentValue);
+        if (currentIndex >= 0) {
+            row.selected = currentIndex;
+        }
+
+        row.connect('notify::selected', () => {
+            const selectedValue = options[row.selected];
+            if (selectedValue !== undefined) {
+                settings.set_int(key, selectedValue);
+            }
+        });
+
+        return row;
+    }
+
+    /**
+     * Creates the color theme selector
      */
     private _createThemeRow(settings: Gio.Settings): Adw.ComboRow {
         const themeModel = new Gtk.StringList();
@@ -142,7 +231,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
     }
 
     /**
-     * Crée le sélecteur de fond du menu
+     * Creates the menu background selector
      */
     private _createBackgroundRow(settings: Gio.Settings): Adw.ComboRow {
         const bgModel = new Gtk.StringList();
@@ -173,7 +262,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
     }
 
     /**
-     * Crée le sélecteur de méthode de calcul
+     * Creates the calculation method selector
      */
     private _createMethodRow(settings: Gio.Settings): Adw.ComboRow {
         const methodModel = new Gtk.StringList();
@@ -203,7 +292,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
     }
 
     /**
-     * Crée le champ d'auto-complétion de ville
+     * Creates the city autocomplete field
      */
     private _createCityAutocompleteRow(settings: Gio.Settings): Adw.PreferencesRow {
         const row = new Adw.PreferencesRow();
@@ -217,7 +306,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
             margin_end: 12,
         });
 
-        // Header avec titre et ville actuelle
+        // Header with title and current city
         const headerBox = new Gtk.Box({
             orientation: Gtk.Orientation.HORIZONTAL,
             spacing: 12,
@@ -239,14 +328,14 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
 
         box.append(headerBox);
 
-        // Champ de recherche
+        // Search field
         const searchEntry = new Gtk.SearchEntry({
             placeholder_text: 'Search for a city...',
             hexpand: true,
         });
         box.append(searchEntry);
 
-        // Liste des résultats
+        // Results list
         const resultsListBox = new Gtk.ListBox({
             selection_mode: Gtk.SelectionMode.SINGLE,
             css_classes: ['boxed-list'],
@@ -263,7 +352,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
     }
 
     /**
-     * Gère les changements dans le champ de recherche
+     * Handles search field changes
      */
     private _handleSearchChanged(
         searchEntry: Gtk.SearchEntry,
@@ -271,9 +360,10 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         settings: Gio.Settings,
         currentLabel: Gtk.Label
     ): void {
+        const self = this;
         const query = searchEntry.text;
 
-        // Annule la recherche précédente si en cours
+        // Cancel previous search if in progress
         if (this._searchTimeout) {
             GLib.source_remove(this._searchTimeout);
             this._searchTimeout = null;
@@ -284,16 +374,16 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
             return;
         }
 
-        // Debounce : attend 500ms avant de lancer la recherche
+        // Debounce: wait 500ms before searching
         this._searchTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-            this._performSearch(query, listBox, settings, currentLabel, searchEntry);
-            this._searchTimeout = null;
+            self._performSearch(query, listBox, settings, currentLabel, searchEntry);
+            self._searchTimeout = null;
             return GLib.SOURCE_REMOVE;
         });
     }
 
     /**
-     * Exécute la recherche de ville
+     * Performs city search
      */
     private _performSearch(
         query: string,
@@ -305,23 +395,28 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         if (!this._httpSession) return;
 
         searchCities(this._httpSession, query, (results) => {
-            // Vide la liste
+            // Clear the list
             while (listBox.get_first_child()) {
                 listBox.remove(listBox.get_first_child()!);
             }
 
             if (results.length > 0) {
                 for (const city of results) {
+                    const subtitle = [city.admin2, city.country]
+                        .filter(Boolean)
+                        .join(', ');
+
                     const cityRow = new Adw.ActionRow({
                         title: city.name,
+                        subtitle: subtitle,
                         activatable: true,
                     });
 
                     cityRow.connect('activated', () => {
-                        // Sauvegarde la ville sélectionnée
+                        // Save selected city
                         settings.set_string('city', city.name);
                         settings.set_string('country', city.country);
-                        // Invalide le cache
+                        // Invalidate cache
                         settings.set_string('cached-date', '');
                         settings.set_string('cached-times', '');
 
