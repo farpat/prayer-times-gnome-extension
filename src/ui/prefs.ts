@@ -89,7 +89,6 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
             title: '24-hour format',
             subtitle: 'Use 24-hour time format instead of AM/PM',
         });
-
         formatRow.active = settings.get_boolean('use-24h-format');
 
         formatRow.connect('notify::active', () => {
@@ -392,44 +391,57 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         currentLabel: Gtk.Label,
         searchEntry: Gtk.SearchEntry
     ): void {
+        const self = this;
         if (!this._httpSession) return;
 
         searchCities(this._httpSession, query, (results) => {
-            // Clear the list
-            while (listBox.get_first_child()) {
-                listBox.remove(listBox.get_first_child()!);
-            }
+            // Guard: window may have been closed during async request
+            if (!self._httpSession) return;
 
-            if (results.length > 0) {
-                for (const city of results) {
-                    const subtitle = [city.admin2, city.country]
-                        .filter(Boolean)
-                        .join(', ');
-
-                    const cityRow = new Adw.ActionRow({
-                        title: city.name,
-                        subtitle: subtitle,
-                        activatable: true,
-                    });
-
-                    cityRow.connect('activated', () => {
-                        // Save selected city
-                        settings.set_string('city', city.name);
-                        settings.set_string('country', city.country);
-                        // Invalidate cache
-                        settings.set_string('cached-date', '');
-                        settings.set_string('cached-times', '');
-
-                        currentLabel.label = city.name;
-                        searchEntry.text = '';
-                        listBox.visible = false;
-                    });
-
-                    listBox.append(cityRow);
+            try {
+                // Clear the list
+                while (listBox.get_first_child()) {
+                    listBox.remove(listBox.get_first_child()!);
                 }
-                listBox.visible = true;
-            } else {
-                listBox.visible = false;
+
+                if (results.length > 0) {
+                    for (const city of results) {
+                        const subtitle = [city.admin2, city.country]
+                            .filter(Boolean)
+                            .join(', ');
+
+                        const cityRow = new Adw.ActionRow({
+                            title: city.name,
+                            subtitle: subtitle,
+                            activatable: true,
+                        });
+
+                        cityRow.connect('activated', () => {
+                            // Save selected city with coordinates
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const s = settings as any;
+                            s.set_string('city', city.name);
+                            s.set_string('country', city.country);
+                            s.set_double('latitude', city.latitude);
+                            s.set_double('longitude', city.longitude);
+                            // Invalidate cache
+                            s.set_string('cached-date', '');
+                            s.set_string('cached-times', '');
+
+                            currentLabel.label = city.name;
+                            searchEntry.text = '';
+                            listBox.visible = false;
+                        });
+
+                        listBox.append(cityRow);
+                    }
+                    listBox.visible = true;
+                } else {
+                    listBox.visible = false;
+                }
+            } catch (e) {
+                // Widget may have been destroyed during async request
+                console.log('[PrayerTimes Prefs] Search callback ignored: widget destroyed');
             }
         });
     }
