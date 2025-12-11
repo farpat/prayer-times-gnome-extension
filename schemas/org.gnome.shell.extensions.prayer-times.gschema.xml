@@ -41,6 +41,19 @@
       <description>Menu background style (auto, light, dark)</description>
     </key>
 
+    <!-- Urgency thresholds -->
+    <key name="urgency-orange-minutes" type="i">
+      <default>30</default>
+      <summary>Orange threshold (minutes)</summary>
+      <description>Show orange indicator when less than this many minutes remain</description>
+    </key>
+
+    <key name="urgency-red-minutes" type="i">
+      <default>10</default>
+      <summary>Red threshold (minutes)</summary>
+      <description>Show red indicator when less than this many minutes remain</description>
+    </key>
+
     <!-- Cache -->
     <key name="cached-times" type="s">
       <default>''</default>
