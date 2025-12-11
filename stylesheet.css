@@ -68,9 +68,9 @@
     color: #813d9c;
 }
 
-/* Light + Orange */
-.prayer-bg-light.prayer-theme-orange .prayer-menu-time {
-    color: #c64600;
+/* Light + Black */
+.prayer-bg-light.prayer-theme-black .prayer-menu-time {
+    color: #1c1c1c;
 }
 
 /* ==================== */
@@ -100,9 +100,9 @@
     color: #c061cb;
 }
 
-/* Dark + Orange */
-.prayer-bg-dark.prayer-theme-orange .prayer-menu-time {
-    color: #ffa348;
+/* Dark + Black */
+.prayer-bg-dark.prayer-theme-black .prayer-menu-time {
+    color: #e0e0e0;
 }
 
 /* ==================== */
@@ -120,8 +120,8 @@
     color: #9141ac;
 }
 
-.prayer-theme-orange .prayer-menu-time {
-    color: #ff7800;
+.prayer-theme-black .prayer-menu-time {
+    color: #3d3d3d;
 }
 
 /* Status indicator dot in panel */

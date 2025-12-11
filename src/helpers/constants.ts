@@ -44,7 +44,7 @@ export const COLOR_THEMES = [
     { id: 'blue', name: 'Blue' },
     { id: 'teal', name: 'Teal' },
     { id: 'purple', name: 'Purple' },
-    { id: 'orange', name: 'Orange' },
+    { id: 'black', name: 'Black' },
 ];
 
 /**
