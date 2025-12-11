@@ -1,6 +1,6 @@
 /**
- * Point d'entrée des helpers
- * Réexporte toutes les fonctions utilitaires
+ * Helpers entry point
+ * Re-exports all utility functions
  */
 
 export * from './constants.js';

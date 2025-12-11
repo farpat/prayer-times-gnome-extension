@@ -1,14 +1,14 @@
 /**
- * Utilitaires de gestion du temps
- * Fonctions pour parser et formater les horaires
+ * Time management utilities
+ * Functions to parse and format prayer times
  */
 
 import type { PrayerTimes, NextPrayer } from '../types/index.js';
 import { PRAYERS } from './constants.js';
 
 /**
- * Retourne la date du jour au format YYYY-MM-DD
- * Utilisé pour le cache des horaires
+ * Returns today's date in YYYY-MM-DD format
+ * Used for caching prayer times
  */
 export function getTodayString(): string {
     const now = new Date();
@@ -19,9 +19,9 @@ export function getTodayString(): string {
 }
 
 /**
- * Parse une chaîne horaire "HH:MM" en objet Date
- * @param timeStr - Horaire au format "HH:MM" ou "HH:MM (timezone)"
- * @returns Date du jour avec l'heure spécifiée, ou null si format invalide
+ * Parses a "HH:MM" time string into a Date object
+ * @param timeStr - Time in "HH:MM" or "HH:MM (timezone)" format
+ * @returns Today's Date with specified time, or null if invalid format
  */
 export function parseTime(timeStr: string): Date | null {
     const match = timeStr.match(/(\d{2}):(\d{2})/);
@@ -39,9 +39,9 @@ export function parseTime(timeStr: string): Date | null {
 }
 
 /**
- * Formate un horaire pour l'affichage
- * @param timeStr - Horaire au format "HH:MM"
- * @param use24h - true pour format 24h, false pour AM/PM
+ * Formats a time string for display
+ * @param timeStr - Time in "HH:MM" format
+ * @param use24h - true for 24h format, false for AM/PM
  */
 export function formatTime(timeStr: string, use24h: boolean): string {
     const date = parseTime(timeStr);
@@ -63,14 +63,14 @@ export function formatTime(timeStr: string, use24h: boolean): string {
 }
 
 /**
- * Détermine la prochaine prière à effectuer
- * @param prayerTimes - Horaires de toutes les prières du jour
- * @returns La prochaine prière et son horaire
+ * Determines the next prayer to perform
+ * @param prayerTimes - All prayer times for the day
+ * @returns The next prayer and its time
  */
 export function getNextPrayer(prayerTimes: PrayerTimes): NextPrayer {
     const now = new Date();
 
-    // Parcourt les prières dans l'ordre pour trouver la prochaine
+    // Iterate through prayers in order to find the next one
     for (const prayer of PRAYERS) {
         const prayerTime = parseTime(prayerTimes[prayer.id]);
         if (prayerTime && now < prayerTime) {
@@ -78,19 +78,23 @@ export function getNextPrayer(prayerTimes: PrayerTimes): NextPrayer {
         }
     }
 
-    // Si toutes les prières sont passées, la prochaine est Fajr (demain)
+    // If all prayers have passed, next is Fajr (tomorrow)
     return { prayer: PRAYERS[0], time: prayerTimes.Fajr };
 }
 
 export type UrgencyStatus = 'green' | 'orange' | 'red';
 
+export type UrgencyThresholds = {
+    orangeMinutes: number;
+    redMinutes: number;
+};
+
 /**
- * Calcule le niveau d'urgence selon le temps restant avant la prochaine prière
- * - Vert : plus de 30 minutes
- * - Orange : entre 10 et 30 minutes
- * - Rouge : moins de 10 minutes
+ * Calculates urgency level based on time remaining before next prayer
+ * @param timeStr - Prayer time
+ * @param thresholds - Configurable thresholds (orange and red in minutes)
  */
-export function getUrgencyStatus(timeStr: string): UrgencyStatus {
+export function getUrgencyStatus(timeStr: string, thresholds: UrgencyThresholds): UrgencyStatus {
     const prayerTime = parseTime(timeStr);
     if (!prayerTime) return 'green';
 
@@ -99,15 +103,15 @@ export function getUrgencyStatus(timeStr: string): UrgencyStatus {
     const diffMinutes = diffMs / (1000 * 60);
 
     if (diffMinutes <= 0) {
-        // Prière passée (probablement Fajr demain)
+        // Prayer has passed (probably Fajr tomorrow)
         return 'green';
     }
 
-    if (diffMinutes <= 10) {
+    if (diffMinutes <= thresholds.redMinutes) {
         return 'red';
     }
 
-    if (diffMinutes <= 30) {
+    if (diffMinutes <= thresholds.orangeMinutes) {
         return 'orange';
     }
 

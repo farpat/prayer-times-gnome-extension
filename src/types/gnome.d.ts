@@ -1,9 +1,9 @@
 /**
- * Déclarations de types pour les modules GNOME Shell
- * Ces déclarations permettent à TypeScript de comprendre les imports GJS
+ * Type declarations for GNOME Shell modules
+ * These declarations allow TypeScript to understand GJS imports
  */
 
-// Globals GJS
+// GJS globals
 declare const console: {
     log(...args: unknown[]): void;
     error(...args: unknown[]): void;

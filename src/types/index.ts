@@ -1,12 +1,12 @@
 /**
- * Types pour l'extension Prayer Times
- * Ce fichier centralise toutes les définitions de types utilisées dans l'extension
+ * Prayer Times extension types
+ * Centralizes all type definitions used in the extension
  */
 
 import type Gio from 'gi://Gio';
 
 /**
- * Horaires de prière retournés par l'API Aladhan
+ * Prayer times returned by Aladhan API
  */
 export interface PrayerTimes {
     Fajr: string;
@@ -18,19 +18,19 @@ export interface PrayerTimes {
 }
 
 /**
- * Information sur une prière (pour l'affichage)
+ * Prayer information (for display)
  */
 export interface PrayerInfo {
-    /** Identifiant de la prière (correspond à la clé dans PrayerTimes) */
+    /** Prayer identifier (matches key in PrayerTimes) */
     id: keyof PrayerTimes;
-    /** Nom affiché */
+    /** Display name */
     label: string;
-    /** Nom du fichier icône (sans extension) */
+    /** Icon filename (without extension) */
     icon: string;
 }
 
 /**
- * Prochaine prière à afficher
+ * Next prayer to display
  */
 export interface NextPrayer {
     prayer: PrayerInfo;
@@ -38,17 +38,19 @@ export interface NextPrayer {
 }
 
 /**
- * Résultat de recherche de ville (API Open-Meteo)
+ * City search result (Open-Meteo API)
  */
 export interface CityResult {
     name: string;
     country: string;
+    admin1: string;
+    admin2: string;
     latitude: number;
     longitude: number;
 }
 
 /**
- * Contexte partagé de l'extension
+ * Shared extension context
  */
 export interface ExtensionContext {
     settings: Gio.Settings;
@@ -56,11 +58,11 @@ export interface ExtensionContext {
 }
 
 /**
- * Callback pour la récupération des horaires
+ * Callback for fetching prayer times
  */
 export type PrayerTimesCallback = (times: PrayerTimes | null, error?: string) => void;
 
 /**
- * Callback pour la recherche de villes
+ * Callback for city search
  */
 export type CitySearchCallback = (results: CityResult[]) => void;

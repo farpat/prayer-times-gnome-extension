@@ -1,12 +1,12 @@
 /**
- * Constantes de l'extension
- * Centralise toutes les valeurs constantes utilisées dans l'extension
+ * Extension constants
+ * Centralizes all constant values used in the extension
  */
 
 import type { PrayerInfo } from '../types/index.js';
 
 /**
- * Liste des 5 prières avec leurs informations d'affichage
+ * List of 5 prayers with display information
  */
 export const PRAYERS: PrayerInfo[] = [
     { id: 'Fajr', label: 'Fajr', icon: 'fajr' },
@@ -17,7 +17,7 @@ export const PRAYERS: PrayerInfo[] = [
 ];
 
 /**
- * Méthodes de calcul des horaires de prière (API Aladhan)
+ * Prayer time calculation methods (Aladhan API)
  */
 export const CALCULATION_METHODS = [
     { id: 0, name: 'Shia Ithna-Ashari' },
@@ -38,7 +38,7 @@ export const CALCULATION_METHODS = [
 ];
 
 /**
- * Thèmes de couleur disponibles
+ * Available color themes
  */
 export const COLOR_THEMES = [
     { id: 'blue', name: 'Blue' },
@@ -48,7 +48,7 @@ export const COLOR_THEMES = [
 ];
 
 /**
- * Options de fond du menu
+ * Menu background options
  */
 export const MENU_BACKGROUNDS = [
     { id: 'auto', name: 'Auto (System)' },
@@ -57,16 +57,16 @@ export const MENU_BACKGROUNDS = [
 ];
 
 /**
- * Intervalle de mise à jour de l'affichage (en secondes)
+ * Display update interval (in seconds)
  */
 export const UPDATE_INTERVAL_SECONDS = 30;
 
 /**
- * URL de base de l'API Aladhan pour les horaires de prière
+ * Aladhan API base URL for prayer times
  */
 export const API_BASE_URL = 'https://api.aladhan.com/v1/timingsByCity';
 
 /**
- * URL de l'API Open-Meteo pour la géolocalisation des villes
+ * Open-Meteo API URL for city geolocation
  */
 export const GEOCODING_API_URL = 'https://geocoding-api.open-meteo.com/v1/search';

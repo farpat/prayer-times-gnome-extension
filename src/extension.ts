@@ -1,6 +1,6 @@
 /**
- * Point d'entrée principal de l'extension
- * Fichier chargé par GNOME Shell au démarrage de l'extension
+ * Main extension entry point
+ * Loaded by GNOME Shell when the extension starts
  */
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -9,15 +9,15 @@ import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { PrayerTimesIndicator } from './ui/indicator.js';
 
 /**
- * Classe principale de l'extension
- * Gère le cycle de vie : enable() au démarrage, disable() à l'arrêt
+ * Main extension class
+ * Manages lifecycle: enable() on start, disable() on stop
  */
 export default class PrayerTimesExtension extends Extension {
     private _indicator: InstanceType<typeof PrayerTimesIndicator> | null = null;
 
     /**
-     * Appelé quand l'extension est activée
-     * Crée l'indicateur et l'ajoute au panel
+     * Called when extension is enabled
+     * Creates indicator and adds it to panel
      */
     enable(): void {
         this._indicator = new PrayerTimesIndicator(this);
@@ -25,8 +25,8 @@ export default class PrayerTimesExtension extends Extension {
     }
 
     /**
-     * Appelé quand l'extension est désactivée
-     * Détruit l'indicateur et libère les ressources
+     * Called when extension is disabled
+     * Destroys indicator and releases resources
      */
     disable(): void {
         if (this._indicator) {

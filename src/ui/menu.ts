@@ -1,6 +1,6 @@
 /**
- * Création et gestion du menu popup de l'extension
- * Affiche les 5 prières avec leurs horaires et un bouton Settings
+ * Extension popup menu creation and management
+ * Displays 5 prayers with times and a Settings button
  */
 
 import St from 'gi://St';
@@ -11,7 +11,7 @@ import type { PrayerTimes } from '../types/index.js';
 import { PRAYERS, formatTime, createIcon } from '../helpers/index.js';
 
 /**
- * Extension du PopupBaseMenuItem pour stocker le label de l'heure
+ * Extended PopupBaseMenuItem to store time label
  */
 interface PrayerMenuItem extends PopupMenu.PopupBaseMenuItem {
     _timeLabel: St.Label;
@@ -19,10 +19,10 @@ interface PrayerMenuItem extends PopupMenu.PopupBaseMenuItem {
 }
 
 /**
- * Crée les éléments de menu pour chaque prière
- * @param menu - Menu popup de l'extension
- * @param extensionPath - Chemin de l'extension (pour les icônes)
- * @returns Map des items indexés par ID de prière
+ * Creates menu items for each prayer
+ * @param menu - Extension popup menu
+ * @param extensionPath - Extension path (for icons)
+ * @returns Map of items indexed by prayer ID
  */
 export function createPrayerMenuItems(
     menu: PopupMenu.PopupMenu,
@@ -36,23 +36,23 @@ export function createPrayerMenuItems(
             can_focus: false,
         }) as PrayerMenuItem;
 
-        // Container principal avec icône et labels
+        // Main container with icon and labels
         const box = new St.BoxLayout({ style_class: 'prayer-menu-item-box' });
 
-        // Icône de la prière
+        // Prayer icon
         const icon = new St.Icon({
             gicon: createIcon(extensionPath, prayer.icon),
             style_class: 'prayer-menu-icon',
         });
         box.add_child(icon);
 
-        // Container pour nom et heure
+        // Container for name and time
         const labelBox = new St.BoxLayout({
             style_class: 'prayer-menu-label-box',
             x_expand: true,
         });
 
-        // Nom de la prière
+        // Prayer name
         const nameLabel = new St.Label({
             text: prayer.label,
             style_class: 'prayer-menu-name',
@@ -60,7 +60,7 @@ export function createPrayerMenuItems(
         });
         labelBox.add_child(nameLabel);
 
-        // Heure de la prière
+        // Prayer time
         const timeLabel = new St.Label({
             text: '--:--',
             style_class: 'prayer-menu-time',
@@ -71,7 +71,7 @@ export function createPrayerMenuItems(
 
         item.add_child(box);
 
-        // Stocke les références pour mise à jour ultérieure
+        // Store references for later updates
         item._timeLabel = timeLabel;
         item._prayerId = prayer.id;
 
@@ -83,9 +83,9 @@ export function createPrayerMenuItems(
 }
 
 /**
- * Crée le bouton Settings en bas du menu
- * @param menu - Menu popup de l'extension
- * @param onActivate - Callback appelé au clic
+ * Creates the Settings button at menu bottom
+ * @param menu - Extension popup menu
+ * @param onActivate - Callback called on click
  */
 export function createSettingsMenuItem(
     menu: PopupMenu.PopupMenu,
@@ -120,10 +120,10 @@ export function createSettingsMenuItem(
 }
 
 /**
- * Met à jour les horaires affichés dans le menu
- * @param items - Map des items de menu
- * @param prayerTimes - Horaires à afficher
- * @param use24h - Format 24h ou AM/PM
+ * Updates displayed times in menu
+ * @param items - Map of menu items
+ * @param prayerTimes - Times to display
+ * @param use24h - 24h or AM/PM format
  */
 export function updateMenuItems(
     items: Map<string, PrayerMenuItem>,

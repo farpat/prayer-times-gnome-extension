@@ -1,6 +1,6 @@
 /**
- * Point d'entrée des préférences
- * Fichier chargé par GNOME Shell pour afficher les paramètres
+ * Preferences entry point
+ * Loaded by GNOME Shell to display settings
  */
 
 export { default } from './ui/prefs.js';

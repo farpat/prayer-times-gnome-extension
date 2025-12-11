@@ -1,7 +1,7 @@
 /**
- * Services d'appel aux APIs externes
- * - Aladhan : horaires de prière
- * - Open-Meteo : géolocalisation des villes
+ * External API services
+ * - Aladhan: prayer times
+ * - Open-Meteo: city geolocation
  */
 
 import GLib from 'gi://GLib';
@@ -11,12 +11,12 @@ import type { PrayerTimes, CityResult, PrayerTimesCallback, CitySearchCallback }
 import { API_BASE_URL, GEOCODING_API_URL } from './constants.js';
 
 /**
- * Récupère les horaires de prière depuis l'API Aladhan
- * @param session - Session HTTP Soup
- * @param city - Nom de la ville
- * @param country - Nom du pays
- * @param method - ID de la méthode de calcul
- * @param callback - Fonction appelée avec les résultats
+ * Fetches prayer times from Aladhan API
+ * @param session - Soup HTTP session
+ * @param city - City name
+ * @param country - Country name
+ * @param method - Calculation method ID
+ * @param callback - Function called with results
  */
 export function fetchPrayerTimes(
     session: Soup.Session,
@@ -40,8 +40,17 @@ export function fetchPrayerTimes(
         GLib.PRIORITY_DEFAULT,
         null,
         (sess, result) => {
+            let bytes;
             try {
-                const bytes = sess.send_and_read_finish(result);
+                bytes = sess.send_and_read_finish(result);
+            } catch (e) {
+                const errorMessage = e instanceof Error ? e.message : String(e);
+                console.error('[PrayerTimes API] Network error:', errorMessage);
+                callback(null, 'Network error');
+                return;
+            }
+
+            try {
                 const decoder = new TextDecoder('utf-8');
                 const responseText = decoder.decode(bytes.get_data());
                 const data = JSON.parse(responseText);
@@ -70,10 +79,10 @@ export function fetchPrayerTimes(
 }
 
 /**
- * Recherche des villes par nom via l'API Open-Meteo
- * @param session - Session HTTP Soup
- * @param query - Texte de recherche (min 2 caractères)
- * @param callback - Fonction appelée avec les résultats
+ * Searches cities by name via Open-Meteo API
+ * @param session - Soup HTTP session
+ * @param query - Search text (min 2 characters)
+ * @param callback - Function called with results
  */
 export function searchCities(
     session: Soup.Session,
@@ -104,6 +113,8 @@ export function searchCities(
                         (r: Record<string, unknown>) => ({
                             name: r.name as string,
                             country: (r.country as string) || '',
+                            admin1: (r.admin1 as string) || '',
+                            admin2: (r.admin2 as string) || '',
                             latitude: r.latitude as number,
                             longitude: r.longitude as number,
                         })
