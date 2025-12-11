@@ -1,0 +1,15 @@
+{
+  "name": "prayer-times-gnome-extension",
+  "version": "1.0.0",
+  "description": "Islamic prayer times GNOME Shell extension",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@girs/gnome-shell": "49.1.0",
+    "typescript": "^5.7.2"
+  }
+}

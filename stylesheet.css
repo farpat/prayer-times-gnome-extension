@@ -1,0 +1,145 @@
+/* Prayer Times Extension Stylesheet */
+
+/* Panel button box */
+.prayer-times-box {
+    spacing: 6px;
+}
+
+/* Prayer label in panel */
+.prayer-label {
+    font-weight: bold;
+}
+
+/* Prayer icon in panel */
+.prayer-icon {
+    icon-size: 16px;
+}
+
+/* Menu item box */
+.prayer-menu-item-box {
+    spacing: 12px;
+    padding: 4px 0;
+}
+
+/* Menu icon */
+.prayer-menu-icon {
+    icon-size: 20px;
+}
+
+/* Menu label box */
+.prayer-menu-label-box {
+    spacing: 12px;
+}
+
+/* Prayer name in menu */
+.prayer-menu-name {
+    font-weight: 500;
+}
+
+/* Prayer time in menu */
+.prayer-menu-time {
+    font-weight: bold;
+}
+
+/* ==================== */
+/* Light background     */
+/* ==================== */
+.prayer-bg-light {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.prayer-bg-light .popup-menu-item,
+.prayer-bg-light .prayer-menu-name {
+    color: #1c1c1c;
+}
+
+/* Light + Blue */
+.prayer-bg-light.prayer-theme-blue .prayer-menu-time {
+    color: #1a5fb4;
+}
+
+/* Light + Teal */
+.prayer-bg-light.prayer-theme-teal .prayer-menu-time {
+    color: #26a269;
+}
+
+/* Light + Purple */
+.prayer-bg-light.prayer-theme-purple .prayer-menu-time {
+    color: #813d9c;
+}
+
+/* Light + Orange */
+.prayer-bg-light.prayer-theme-orange .prayer-menu-time {
+    color: #c64600;
+}
+
+/* ==================== */
+/* Dark background      */
+/* ==================== */
+.prayer-bg-dark {
+    background-color: rgba(30, 30, 30, 0.95);
+}
+
+.prayer-bg-dark .popup-menu-item,
+.prayer-bg-dark .prayer-menu-name {
+    color: #ffffff;
+}
+
+/* Dark + Blue */
+.prayer-bg-dark.prayer-theme-blue .prayer-menu-time {
+    color: #62a0ea;
+}
+
+/* Dark + Teal */
+.prayer-bg-dark.prayer-theme-teal .prayer-menu-time {
+    color: #57e389;
+}
+
+/* Dark + Purple */
+.prayer-bg-dark.prayer-theme-purple .prayer-menu-time {
+    color: #c061cb;
+}
+
+/* Dark + Orange */
+.prayer-bg-dark.prayer-theme-orange .prayer-menu-time {
+    color: #ffa348;
+}
+
+/* ==================== */
+/* Auto (no bg class)   */
+/* ==================== */
+.prayer-theme-blue .prayer-menu-time {
+    color: #3584e4;
+}
+
+.prayer-theme-teal .prayer-menu-time {
+    color: #2ec27e;
+}
+
+.prayer-theme-purple .prayer-menu-time {
+    color: #9141ac;
+}
+
+.prayer-theme-orange .prayer-menu-time {
+    color: #ff7800;
+}
+
+/* Status indicator dot in panel */
+.prayer-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+.prayer-status-green {
+    background-color: #2ec27e;
+}
+
+.prayer-status-orange {
+    background-color: #ff7800;
+}
+
+.prayer-status-red {
+    background-color: #e01b24;
+}

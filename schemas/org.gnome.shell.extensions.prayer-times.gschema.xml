@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="prayer-times">
+  <schema id="org.gnome.shell.extensions.prayer-times" path="/org/gnome/shell/extensions/prayer-times/">
+
+    <!-- Location settings -->
+    <key name="city" type="s">
+      <default>'Paris'</default>
+      <summary>City name</summary>
+      <description>The city for prayer times calculation</description>
+    </key>
+
+    <key name="country" type="s">
+      <default>'France'</default>
+      <summary>Country name</summary>
+      <description>The country for prayer times calculation</description>
+    </key>
+
+    <!-- Calculation method -->
+    <key name="calculation-method" type="i">
+      <default>3</default>
+      <summary>Calculation method</summary>
+      <description>Prayer times calculation method (3 = Muslim World League)</description>
+    </key>
+
+    <!-- Display settings -->
+    <key name="use-24h-format" type="b">
+      <default>true</default>
+      <summary>Use 24-hour format</summary>
+      <description>Use 24-hour time format instead of AM/PM</description>
+    </key>
+
+    <key name="color-theme" type="s">
+      <default>'blue'</default>
+      <summary>Color theme</summary>
+      <description>Color theme for the extension (blue, teal, purple, orange)</description>
+    </key>
+
+    <key name="menu-background" type="s">
+      <default>'auto'</default>
+      <summary>Menu background</summary>
+      <description>Menu background style (auto, light, dark)</description>
+    </key>
+
+    <!-- Cache -->
+    <key name="cached-times" type="s">
+      <default>''</default>
+      <summary>Cached prayer times</summary>
+      <description>JSON string of cached prayer times to avoid unnecessary API calls</description>
+    </key>
+
+    <key name="cached-date" type="s">
+      <default>''</default>
+      <summary>Cached date</summary>
+      <description>Date of cached prayer times (YYYY-MM-DD)</description>
+    </key>
+
+  </schema>
+</schemalist>
