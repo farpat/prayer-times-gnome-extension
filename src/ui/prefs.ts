@@ -21,6 +21,12 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
     private _httpSession: Soup.Session | null = null;
     private _searchTimeout: number | null = null;
 
+    private _formatCoords(latitude: number, longitude: number): string {
+        const latDir = latitude >= 0 ? 'N' : 'S';
+        const lonDir = longitude >= 0 ? 'E' : 'W';
+        return `${Math.abs(latitude).toFixed(4)}° ${latDir}, ${Math.abs(longitude).toFixed(4)}° ${lonDir}`;
+    }
+
     fillPreferencesWindow(window: Adw.PreferencesWindow): void {
         const self = this;
         this._httpSession = new Soup.Session();
@@ -327,6 +333,18 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
 
         box.append(headerBox);
 
+        // Coordinates display
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const s = settings as any;
+        const lat = s.get_double('latitude') as number;
+        const lon = s.get_double('longitude') as number;
+        const coordsLabel = new Gtk.Label({
+            label: lat || lon ? this._formatCoords(lat, lon) : '',
+            css_classes: ['dim-label'],
+            halign: Gtk.Align.START,
+        });
+        box.append(coordsLabel);
+
         // Search field
         const searchEntry = new Gtk.SearchEntry({
             placeholder_text: 'Search for a city...',
@@ -343,7 +361,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         box.append(resultsListBox);
 
         searchEntry.connect('search-changed', () => {
-            this._handleSearchChanged(searchEntry, resultsListBox, settings, currentLabel);
+            this._handleSearchChanged(searchEntry, resultsListBox, settings, currentLabel, coordsLabel);
         });
 
         row.set_child(box);
@@ -357,7 +375,8 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         searchEntry: Gtk.SearchEntry,
         listBox: Gtk.ListBox,
         settings: Gio.Settings,
-        currentLabel: Gtk.Label
+        currentLabel: Gtk.Label,
+        coordsLabel: Gtk.Label
     ): void {
         const self = this;
         const query = searchEntry.text;
@@ -375,7 +394,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
 
         // Debounce: wait 500ms before searching
         this._searchTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-            self._performSearch(query, listBox, settings, currentLabel, searchEntry);
+            self._performSearch(query, listBox, settings, currentLabel, coordsLabel, searchEntry);
             self._searchTimeout = null;
             return GLib.SOURCE_REMOVE;
         });
@@ -389,6 +408,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         listBox: Gtk.ListBox,
         settings: Gio.Settings,
         currentLabel: Gtk.Label,
+        coordsLabel: Gtk.Label,
         searchEntry: Gtk.SearchEntry
     ): void {
         const self = this;
@@ -429,6 +449,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
                             s.set_string('cached-times', '');
 
                             currentLabel.label = city.name;
+                            coordsLabel.label = self._formatCoords(city.latitude, city.longitude);
                             searchEntry.text = '';
                             listBox.visible = false;
                         });
