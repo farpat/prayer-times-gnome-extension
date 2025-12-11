@@ -50,13 +50,16 @@ export function fetchPrayerTimes(
                 return;
             }
 
+            let times: PrayerTimes | null = null;
+            let errorMessage: string | undefined;
+
             try {
                 const decoder = new TextDecoder('utf-8');
                 const responseText = decoder.decode(bytes.get_data());
                 const data = JSON.parse(responseText);
 
                 if (data.code === 200 && data.data?.timings) {
-                    const times: PrayerTimes = {
+                    times = {
                         Fajr: data.data.timings.Fajr,
                         Sunrise: data.data.timings.Sunrise,
                         Dhuhr: data.data.timings.Dhuhr,
@@ -65,14 +68,20 @@ export function fetchPrayerTimes(
                         Isha: data.data.timings.Isha,
                     };
                     console.log('[PrayerTimes API] Successfully fetched times');
-                    callback(times);
                 } else {
                     console.error(`[PrayerTimes API] API error - code: ${data.code}, status: ${data.status}`);
-                    callback(null, data.status || 'API error');
+                    errorMessage = data.status || 'API error';
                 }
             } catch (e) {
                 console.error('[PrayerTimes API] Parse error:', e);
-                callback(null, 'Parse error');
+                errorMessage = 'Parse error';
+            }
+
+            // Callback outside try/catch to avoid catching callback errors
+            if (times) {
+                callback(times);
+            } else {
+                callback(null, errorMessage);
             }
         }
     );
@@ -102,6 +111,8 @@ export function searchCities(
         GLib.PRIORITY_DEFAULT,
         null,
         (sess, result) => {
+            let cities: CityResult[] = [];
+
             try {
                 const bytes = sess.send_and_read_finish(result);
                 const decoder = new TextDecoder('utf-8');
@@ -109,7 +120,7 @@ export function searchCities(
                 const data = JSON.parse(responseText);
 
                 if (data.results && data.results.length > 0) {
-                    const cities: CityResult[] = data.results.map(
+                    cities = data.results.map(
                         (r: Record<string, unknown>) => ({
                             name: r.name as string,
                             country: (r.country as string) || '',
@@ -119,14 +130,13 @@ export function searchCities(
                             longitude: r.longitude as number,
                         })
                     );
-                    callback(cities);
-                } else {
-                    callback([]);
                 }
             } catch (e) {
                 console.error('Prayer Times: City search error', e);
-                callback([]);
             }
+
+            // Callback outside try/catch to avoid catching callback errors
+            callback(cities);
         }
     );
 }
