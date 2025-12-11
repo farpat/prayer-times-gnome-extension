@@ -15,6 +15,18 @@
       <description>The country for prayer times calculation</description>
     </key>
 
+    <key name="latitude" type="d">
+      <default>48.8566</default>
+      <summary>Latitude</summary>
+      <description>Latitude of the location for prayer times calculation</description>
+    </key>
+
+    <key name="longitude" type="d">
+      <default>2.3522</default>
+      <summary>Longitude</summary>
+      <description>Longitude of the location for prayer times calculation</description>
+    </key>
+
     <!-- Calculation method -->
     <key name="calculation-method" type="i">
       <default>3</default>
