@@ -324,9 +324,13 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
         });
         headerBox.append(titleLabel);
 
+        // Build location display: City, Region, Country
         const currentCity = settings.get_string('city');
+        const currentRegion = settings.get_string('region');
+        const currentCountry = settings.get_string('country');
+        const locationParts = [currentCity, currentRegion, currentCountry].filter(Boolean);
         const currentLabel = new Gtk.Label({
-            label: currentCity || 'Not set',
+            label: locationParts.length > 0 ? locationParts.join(', ') : 'Not set',
             css_classes: ['dim-label'],
         });
         headerBox.append(currentLabel);
@@ -441,6 +445,7 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             const s = settings as any;
                             s.set_string('city', city.name);
+                            s.set_string('region', city.admin2 || '');
                             s.set_string('country', city.country);
                             s.set_double('latitude', city.latitude);
                             s.set_double('longitude', city.longitude);
@@ -448,7 +453,9 @@ export default class PrayerTimesPreferences extends ExtensionPreferences {
                             s.set_string('cached-date', '');
                             s.set_string('cached-times', '');
 
-                            currentLabel.label = city.name;
+                            // Update display with full location
+                            const locationParts = [city.name, city.admin2, city.country].filter(Boolean);
+                            currentLabel.label = locationParts.join(', ');
                             coordsLabel.label = self._formatCoords(city.latitude, city.longitude);
                             searchEntry.text = '';
                             listBox.visible = false;
