@@ -45,12 +45,18 @@
 /* Light background     */
 /* ==================== */
 .prayer-bg-light {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
 .prayer-bg-light .popup-menu-item,
 .prayer-bg-light .prayer-menu-name {
     color: #1c1c1c;
+}
+
+/* Light hover - dark overlay for contrast */
+.prayer-bg-light .popup-menu-item:hover,
+.prayer-bg-light .popup-menu-item:focus {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Light + Blue */
@@ -77,12 +83,18 @@
 /* Dark background      */
 /* ==================== */
 .prayer-bg-dark {
-    background-color: rgba(30, 30, 30, 0.95);
+    background-color: rgba(30, 30, 30, 0.95) !important;
 }
 
 .prayer-bg-dark .popup-menu-item,
 .prayer-bg-dark .prayer-menu-name {
     color: #ffffff;
+}
+
+/* Dark hover - light overlay for contrast */
+.prayer-bg-dark .popup-menu-item:hover,
+.prayer-bg-dark .popup-menu-item:focus {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Dark + Blue */
