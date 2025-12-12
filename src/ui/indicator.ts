@@ -333,16 +333,21 @@ export const PrayerTimesIndicator = GObject.registerClass(
         /**
          * Applies color theme and background to menu
          * Uses cached values to avoid GSettings access in callbacks
+         * Background is applied to menu.actor (the popup container with background)
+         * Theme is also applied to menu.actor for CSS selector combinations
          * @param cacheRef - optional cache reference (for GLib callbacks where this._cache is lost)
          */
         private _applyTheme(cacheRef?: typeof this._cache): void {
             // Use provided cache or fall back to this._cache (which works in direct calls)
             const cache = cacheRef || this._cache;
 
-            console.log(`[PrayerTimes] _applyTheme() START: menu=${!!this.menu}, box=${!!this.menu?.box}, cache=${!!cache}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const menuActor = (this.menu as any)?.actor;
 
-            if (!this.menu?.box || !cache) {
-                console.log('[PrayerTimes] _applyTheme() EARLY RETURN: no menu.box or cache');
+            console.log(`[PrayerTimes] _applyTheme() START: menu=${!!this.menu}, actor=${!!menuActor}, cache=${!!cache}`);
+
+            if (!menuActor || !cache) {
+                console.log('[PrayerTimes] _applyTheme() EARLY RETURN: no menu.actor or cache');
                 return;
             }
 
@@ -355,18 +360,18 @@ export const PrayerTimesIndicator = GObject.registerClass(
 
             if (newTheme !== this._currentTheme) {
                 console.log(`[PrayerTimes] _applyTheme: changing theme from ${this._currentTheme} to ${newTheme}`);
-                this.menu.box.remove_style_class_name(`prayer-theme-${this._currentTheme}`);
-                this.menu.box.add_style_class_name(`prayer-theme-${newTheme}`);
+                menuActor.remove_style_class_name(`prayer-theme-${this._currentTheme}`);
+                menuActor.add_style_class_name(`prayer-theme-${newTheme}`);
                 this._currentTheme = newTheme;
             }
 
             if (newBackground !== this._currentBackground) {
                 console.log(`[PrayerTimes] _applyTheme: changing bg from ${this._currentBackground} to ${newBackground}`);
                 if (this._currentBackground !== 'auto') {
-                    this.menu.box.remove_style_class_name(`prayer-bg-${this._currentBackground}`);
+                    menuActor.remove_style_class_name(`prayer-bg-${this._currentBackground}`);
                 }
                 if (newBackground !== 'auto') {
-                    this.menu.box.add_style_class_name(`prayer-bg-${newBackground}`);
+                    menuActor.add_style_class_name(`prayer-bg-${newBackground}`);
                 }
                 this._currentBackground = newBackground;
             }
